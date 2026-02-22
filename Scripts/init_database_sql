@@ -1,0 +1,55 @@
+/*
+=============================================================
+ Project:     Data Warehouse - Medallion Architecture
+ Platform:    Microsoft SQL Server
+ Author:      Mohamed Rashwan
+ Description: Database initialization script.
+              Creates database and layered schemas:
+              Bronze  - Raw ingestion layer
+              Silver  - Cleaned & transformed layer
+              Gold    - Analytics & reporting layer
+=============================================================
+*/
+
+-- =========================================================
+-- 1. Create Database
+-- =========================================================
+USE master
+
+GO
+
+-- Drop and recreate the 'DataWarehouse' database
+
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DataWarehouse')
+BEGIN
+    ALTER DATABASE DataWarehouse set single_user WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE DataWarehouse
+END
+GO
+
+-- Creatin the Database
+
+CREATE DATABASE DataWarehouse;
+GO 
+
+
+USE DataWarehouse;
+GO
+
+-- Creating 1st schema
+
+CREATE SCHEMA Bronze;
+GO
+
+-- Creating 2nd schema
+
+
+CREATE SCHEMA Silver;
+GO
+
+-- Creating 3rd schema
+
+
+CREATE SCHEMA Gold;
+GO
+
