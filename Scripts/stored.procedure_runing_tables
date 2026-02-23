@@ -1,0 +1,111 @@
+CREATE OR ALTER PROCEDURE bronze.load_tables as
+
+BEGIN
+DECLARE @start_time datetime
+DECLARE @end_time datetime;
+BEGIN TRY
+
+PRINT '============================='
+PRINT 'Loading Bronze Tables'
+PRINT '============================='
+
+
+PRINT '-----------------------------'
+PRINT 'Loading crm Tables'
+PRINT '-----------------------------'
+
+
+SET @start_time = GETDATE();
+PRINT 'Truncating Table bronze.cust_id_info';
+TRUNCATE TABLE bronze.cust_id_info
+
+PRINT 'Loading Table bronze.cust_id_info';
+BULK INSERT bronze.cust_id_info
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_crm\cust_info.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+
+SET @start_time = GETDATE();
+
+PRINT 'Truncating Table cust_prd_info'
+TRUNCATE TABLE bronze.cust_prd_info
+
+PRINT 'Loading Table cust_prd_info'
+BULK INSERT bronze.cust_prd_info
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_crm\prd_info.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+
+SET @start_time = GETDATE();
+TRUNCATE TABLE bronze.cust_sales_details
+BULK INSERT bronze.cust_sales_details
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_crm\sales_details.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+PRINT '-----------------------------'
+PRINT 'Loading erp Tables'
+PRINT '-----------------------------'
+
+
+SET @start_time = GETDATE();
+TRUNCATE TABLE bronze.erp_cust_az12
+BULK INSERT bronze.erp_cust_az12
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_erp\cust_az12.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+
+SET @start_time = GETDATE();
+TRUNCATE TABLE bronze.erp_loc_a101
+BULK INSERT bronze.erp_loc_a101
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_erp\loc_a101.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+
+SET @start_time = GETDATE();
+TRUNCATE TABLE bronze.erp_px_cat12
+BULK INSERT bronze.erp_px_cat12
+FROM 'E:\Baraa-proj\sql-data-warehouse-project\datasets\source_erp\PX_CAT_G1V2.csv'
+WITH (
+		FIRST_ROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	)
+SET @end_time = GETDATE();
+PRINT 'Load Duration ' + CAST(DATEDIFF(second , @start_time,@end_time) as NVARCHAR) +'seconds';
+
+
+END TRY
+BEGIN CATCH
+END CATCH
+
+END
