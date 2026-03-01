@@ -1,0 +1,195 @@
+📘 Sales Data Warehouse – Data Catalog
+1. Architecture Overview
+
+This project follows a Medallion Architecture approach:
+
+🥉 Bronze Layer – Raw source data ingestion
+
+🥈 Silver Layer – Cleaned, standardized, and validated data
+
+🥇 Gold Layer – Dimensional model optimized for analytics
+
+Load Strategy:
+
+Bronze → Silver: Full Refresh (TRUNCATE + INSERT)
+
+Transformations handled via stored procedure: silver.load_tables
+
+🥉 Bronze Layer (Raw Data)
+Purpose
+
+Stores raw data loaded via BULK INSERT.
+No business transformations are applied in this layer.
+
+Tables
+bronze.cust_id_info
+
+Customer master data (raw).
+
+Column	Description
+customer_id	Business identifier
+customer_key	Source surrogate key
+customer_first_name	Raw first name
+customer_last_name	Raw last name
+customer_martial_status	Marital status code (S/M)
+gender	Gender code
+create_date	Record creation date
+bronze.cust_prd_info
+
+Product master data (raw).
+
+Column	Description
+prd_id	Product identifier
+prd_key	Composite product key
+prd_num	Product number
+prd_cost	Product cost
+prd_line	Product line code
+prd_start_dt	Product start date
+bronze.cust_sales_details
+
+Sales transaction data (raw).
+
+Column	Description
+sales_ord	Sales order number
+sls_prd_key	Product business key
+sls_cust_id	Customer business key
+sls_order_dt	Order date (YYYYMMDD format)
+sls_ship_dt	Ship date
+sls_due_dt	Due date
+sls_sales	Sales amount
+sls_quantity	Quantity sold
+sls_price	Unit price
+bronze.erp_cust_az12
+
+ERP customer enrichment data.
+
+bronze.erp_loc_a101
+
+ERP customer location data.
+
+bronze.erp_px_cat12
+
+ERP product category data.
+
+🥈 Silver Layer (Cleaned & Standardized)
+Purpose
+
+Deduplicate records
+
+Standardize categorical values
+
+Convert data types
+
+Validate business rules
+
+Clean invalid or inconsistent data
+
+Loaded using:
+silver.load_tables
+
+Tables
+silver.cust_id_info
+
+Deduplicated using ROW_NUMBER() (latest create_date)
+
+Trimmed first and last names
+
+Standardized gender values (Male, Female, n/a)
+
+Standardized marital status (Single, Married, n/a)
+
+silver.cust_prd_info
+
+Extracted cat_id from product key
+
+Standardized product line descriptions
+
+Defaulted NULL product cost to 0
+
+Generated prd_end_dt using LEAD() window function
+
+silver.cust_sales_details
+
+Converted date columns to DATE type
+
+Recalculated sales if:
+
+NULL
+
+≤ 0
+
+Not equal to price × quantity
+
+Recalculated price if invalid
+
+Enforced non-negative sales
+
+Applied safe numeric conversions using TRY_CONVERT
+
+silver.erp_cust_az12
+
+Removed 'NAS' prefix from customer ID
+
+Nullified future birthdates
+
+Standardized gender values
+
+silver.erp_loc_a101
+
+Removed hyphens from customer ID
+
+Standardized country names:
+
+US / USA → United States
+
+DE → Germany
+
+NULL → n/a
+
+silver.erp_px_cat12
+
+Direct load from Bronze (no transformations applied).
+
+🥇 Gold Layer (Dimensional Model)
+Purpose
+
+Provides a star schema model optimized for reporting and analytics.
+
+Dimensions
+gold.dim_customer
+
+Surrogate key: customer_key
+
+Contains cleaned and enriched customer attributes
+
+gold.dim_product
+
+Surrogate key: product_key
+
+Contains product attributes, category, product line, and cost information
+
+Fact Table
+gold.fact_sales (Planned / In Progress)
+Column	Description
+sales_ord	Sales order number
+product_key	FK → dim_product
+customer_key	FK → dim_customer
+order_date	Order date
+ship_date	Ship date
+due_date	Due date
+sales_amount	Total sales
+quantity	Units sold
+unit_price	Unit price
+Data Quality Rules
+
+Sales must equal price × quantity
+
+Sales values must be non-negative
+
+Dates must be valid and properly formatted
+
+Customer records are deduplicated by latest creation date
+
+Gender and marital status values are standardized
+
+Future birthdates are nullified
